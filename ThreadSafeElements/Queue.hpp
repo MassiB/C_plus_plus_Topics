@@ -13,6 +13,7 @@
 
 #include <condition_variable>
 #include <queue>
+#include <memory>
 #include <mutex>
 
 /// @brief Thread safe container
@@ -28,25 +29,25 @@ public:
     Queue(Queue&&) = default;
     Queue& operator=(Queue&&) = default;
 
-    auto push_back(DataType && element) -> void;
+    auto push_back(const DataType & element) -> void;
     auto pop_front(DataType & element) -> void;
     auto empty() const -> bool;
     auto size() -> std::size_t;
 private:
     std::condition_variable m_cv;
     std::mutex m_mtx;
-    std::queue<DataType> m_queue;
+    std::queue<std::shared_ptr<DataType>> m_queue;
 };
 
-/// @brief push element at the end of m_queue
+/// @brief push element to m_queue
 /// @tparam DataType 
 /// @param element 
 /// @return void
 template <typename DataType>
-auto Queue<DataType>::push_back(DataType && element) -> void
+auto Queue<DataType>::push_back(const DataType & element) -> void
 {
     std::lock_guard<std::mutex> lock(m_mtx);
-    m_queue.push(std::move(element));
+    m_queue.push(std::make_shared<DataType>(elements));
     m_cv.notify_one();
 }
 
@@ -60,7 +61,7 @@ auto Queue<DataType>::pop_front(DataType & element) -> void
     std::unique_lock<std::mutex> lock(m_mtx);
     m_cv.wait(lock, [this]() -> bool { return !m_queue.empty(); });
     if (m_queue.empty()) return;
-    element = std::move(m_queue.front());
+    element = *m_queue.front().get();
     m_queue.pop();
 }
 
