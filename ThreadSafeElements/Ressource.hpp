@@ -11,7 +11,7 @@
 #ifndef RESSOURCE_HPP_
 #define RESSOURCE_HPP_
 
-#include "Utilities.hpp"
+#include "Utilities/Utilities.hpp"
 
 #include <mutex>
 
