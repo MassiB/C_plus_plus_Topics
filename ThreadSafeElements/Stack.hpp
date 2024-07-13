@@ -30,7 +30,6 @@ class Stack
 public:
     Stack() = default;
     virtual ~Stack() = default;
-    
     auto push(const DataType & element) -> void;
     auto top() -> DataType&;
     auto pop() -> void;
