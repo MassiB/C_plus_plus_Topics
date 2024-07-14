@@ -16,6 +16,7 @@
 #include <mutex>
 #include <thread>
 #include <queue>
+#include <string>
 
 /// @brief Logger class to log info 
 class Logger

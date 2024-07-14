@@ -51,7 +51,7 @@ auto Logger::write() -> void
         {
             auto msg = std::move(m_message_queue.front());
             m_message_queue.pop();
-            auto &time = getCurrentTime();
+            auto time = getCurrentTime();
             m_outfile << time << ": " << msg << "\n"; 
         }
     }

@@ -17,6 +17,7 @@
 #include <mutex>
 #include <vector>
 #include <queue>
+#include <thread>
 
 /// @brief ThreadPool class
 class ThreadPool final
