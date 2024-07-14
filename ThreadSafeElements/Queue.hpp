@@ -29,8 +29,8 @@ public:
     Queue(Queue&&) = default;
     Queue& operator=(Queue&&) = default;
 
-    auto push_back(const DataType & element) -> void;
-    auto pop_front(DataType & element) -> void;
+    auto push(const DataType & element) -> void;
+    auto pop(DataType & element) -> void;
     auto empty() const -> bool;
     auto size() -> std::size_t;
 private:
@@ -44,7 +44,7 @@ private:
 /// @param element 
 /// @return void
 template <typename DataType>
-auto Queue<DataType>::push_back(const DataType & element) -> void
+auto Queue<DataType>::push(const DataType & element) -> void
 {
     std::lock_guard<std::mutex> lock(m_mtx);
     m_queue.push(std::make_shared<DataType>(elements));
@@ -56,7 +56,7 @@ auto Queue<DataType>::push_back(const DataType & element) -> void
 /// @param element 
 /// @return void
 template <typename DataType>
-auto Queue<DataType>::pop_front(DataType & element) -> void
+auto Queue<DataType>::pop(DataType & element) -> void
 {
     std::unique_lock<std::mutex> lock(m_mtx);
     m_cv.wait(lock, [this]() -> bool { return !m_queue.empty(); });
