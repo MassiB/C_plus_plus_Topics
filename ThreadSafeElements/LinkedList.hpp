@@ -14,6 +14,7 @@
 #include <condition_variable>
 #include <memory>
 #include <mutex>
+#include <optional>
 
 /// @brief Linked List class
 /// @tparam DataType 
@@ -51,8 +52,8 @@ public:
     auto pop_front() -> void;
     auto pop_back() -> void;
     auto empty() -> bool;
-    auto front() -> DataType&;
-    auto back() -> DataType&;
+    auto front() -> std::optional<DataType>;
+    auto back() -> std::optional<DataType>;
     auto begin() -> Iterator&;
     auto end() -> Iterator&;
 private:
@@ -148,28 +149,26 @@ auto LinkedList<DataType>::empty() -> bool
     return m_head == nullptr;
 }
 
-/// @brief return first element of the linkedlist
+/// @brief return first element of the linked list
 /// @tparam DataType 
-/// @return DataType
+/// @return std::optional<DataType>
 template <typename DataType>
-auto LinkedList<DataType>::front() -> DataType&
+auto LinkedList<DataType>::front() -> std::optional<DataType>
 {
     std::lock_guard<std::mutex> lock(m_mtx);
-    if (m_head == nullptr)
-        throw std::bad_alloc();
-    return m_head.get()->data;
+    return (nullptr != m_head) ? std::optional<DataType> {m_head->data} :
+        std::nullopt;
 }
 
-/// @brief 
+/// @brief return last element of the linked list
 /// @tparam DataType 
-/// @return 
+/// @return std::optional<DataType>
 template <typename DataType>
-auto LinkedList<DataType>::back() -> DataType&
+auto LinkedList<DataType>::back() -> std::optional<DataType>
 {
     std::lock_guard<std::mutex> lock(m_mtx);
-    if (m_tail == nullptr)
-        throw std::bad_alloc();
-    return m_tail->data;
+    return (nullptr != m_tail) ? std::optional<DataType> {m_tail->data} :
+        std::nullopt;
 }
 
 /// @brief return iterator at the beginning of the list
