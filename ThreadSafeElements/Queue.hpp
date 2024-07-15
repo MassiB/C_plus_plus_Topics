@@ -12,77 +12,99 @@
 #define QUEUE_HPP_
 
 #include <condition_variable>
-#include <queue>
 #include <memory>
 #include <mutex>
+#include <optional>
 
-/// @brief Thread safe container
+/// @brief Queue class
 /// @tparam DataType 
 template <typename DataType>
 class Queue
 {
+    struct InternalStructure final
+    {
+        InternalStructure(const DataType & data);
+        ~InternalStructure() = default;
+        std::unique_ptr<InternalStructure> next {nullptr};
+        DataType data;
+    };
+    typedef InternalStructure Node;
 public:
     Queue() = default;
     virtual ~Queue() = default;
-    Queue(const Queue&) = delete;
-    Queue& operator=(const Queue&) = delete;
-    Queue(Queue&&) = default;
-    Queue& operator=(Queue&&) = default;
-
-    auto push(const DataType & element) -> void;
-    auto pop(DataType & element) -> void;
-    auto empty() const -> bool;
-    auto size() -> std::size_t;
+    auto push(const DataType & data) -> void;
+    auto pop() -> void;
+    auto front() -> std::optional<DataType>;
+    auto empty() -> bool;
 private:
-    std::condition_variable m_cv;
+    std::unique_ptr<Node> m_head {nullptr};
+    Node *m_tail {nullptr};
     std::mutex m_mtx;
-    std::queue<std::shared_ptr<DataType>> m_queue;
+    std::condition_variable m_cv;
 };
 
-/// @brief push element to m_queue
+/// @brief constructor 
 /// @tparam DataType 
-/// @param element 
+/// @param _data 
+template <typename DataType>
+Queue<DataType>::InternalStructure::InternalStructure(const DataType & _data) : data(_data)
+{}
+
+/// @brief insert data into the queue
+/// @tparam DataType 
+/// @param data 
 /// @return void
 template <typename DataType>
-auto Queue<DataType>::push(const DataType & element) -> void
+auto Queue<DataType>::push(const DataType & data) -> void
 {
     std::lock_guard<std::mutex> lock(m_mtx);
-    m_queue.push(std::make_shared<DataType>(elements));
+    auto newNode = std::make_unique<Node> (data);
+    if (nullptr == m_head){
+        m_head = std::move(newNode);
+        m_tail = m_head.get();
+        return;
+    }
+    m_tail->next = std::move(newNode);
+    m_tail = m_tail->next.get();
     m_cv.notify_one();
 }
 
-/// @brief remove first element of m_queue
+/// @brief remove first element of the queue
 /// @tparam DataType 
-/// @param element 
 /// @return void
 template <typename DataType>
-auto Queue<DataType>::pop(DataType & element) -> void
+auto Queue<DataType>::pop() -> void
 {
     std::unique_lock<std::mutex> lock(m_mtx);
-    m_cv.wait(lock, [this]() -> bool { return !m_queue.empty(); });
-    if (m_queue.empty()) return;
-    element = *m_queue.front().get();
-    m_queue.pop();
+    m_cv.wait(lock, [this]()->bool {return m_head != nullptr;});
+    if (m_head.get() == m_tail) {
+        m_head.reset(nullptr);
+        m_tail = nullptr;
+    } else {
+        m_head = std::move(m_head->next);
+    }
 }
 
-/// @brief return if m_queue is empty or not
+/// @brief return first element of the queue
+/// @tparam DataType 
+/// @return std::optional<DataType>
+template <typename DataType>
+auto Queue<DataType>::front() -> std::optional<DataType>
+{
+    std::unique_lock<std::mutex> lock(m_mtx);
+    m_cv.wait(lock, [this]() -> bool {return m_head != nullptr;});
+    return (nullptr != m_head) ? std::optional<DataType> {m_head->data} :
+        std::nullopt;
+}
+
+/// @brief return true if queue is empty otherwise false
 /// @tparam DataType 
 /// @return bool
 template <typename DataType>
-auto Queue<DataType>::empty() const -> bool
+auto Queue<DataType>::empty() -> bool
 {
     std::lock_guard<std::mutex> lock(m_mtx);
-    return m_queue.empty();
-}
-
-/// @brief get the size of m_queue
-/// @tparam DataType 
-/// @return std::size_t
-template <typename DataType>
-auto Queue<DataType>::size() -> std::size_t
-{
-    std::lock_guard<std::mutex> lock(m_mtx);
-    return m_queue.size();
+    return m_head == nullptr;
 }
 
 #endif /*QUEUE_HPP_*/
