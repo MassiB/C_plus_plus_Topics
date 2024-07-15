@@ -14,15 +14,17 @@
 #include <condition_variable>
 #include <memory>
 #include <mutex>
+#include <optional>
 
 /// @brief Stack class
 /// @tparam DataType 
 template <typename DataType>
 class Stack
 {
-    struct InternalStructure
+    struct InternalStructure final
     {
         InternalStructure(const DataType & _data) : data(_data) {}
+        ~InternalStructure() = default;
         std::unique_ptr<InternalStructure> next {nullptr};
         DataType data;
     };
@@ -31,7 +33,7 @@ public:
     Stack() = default;
     virtual ~Stack() = default;
     auto push(const DataType & element) -> void;
-    auto top() -> DataType&;
+    auto top() -> std::optional<DataType>;
     auto pop() -> void;
     auto empty() -> bool;
 private:
@@ -56,14 +58,13 @@ auto Stack<DataType>::push(const DataType & element) -> void
 
 /// @brief return first element of the stack
 /// @tparam DataType 
-/// @return DataType&
+/// @return std::optional<DataType>
 template <typename DataType>
-auto Stack<DataType>::top() -> DataType&
+auto Stack<DataType>::top() -> std::optional<DataType>
 {
     std::lock_guard<std::mutex> lock(m_mtx);
-    if (nullptr == m_head) 
-        throw std::bad_alloc();
-    return m_head->data;
+    return (nullptr != m_head) ? std::optional<DataType> {m_head->data} :
+        std::nullopt;
 }
 
 /// @brief remove top element of the stack
