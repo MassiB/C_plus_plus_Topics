@@ -18,9 +18,17 @@
 #include <thread>
 #include <condition_variable>
 #include <future>
-
+#include <functional>
 namespace algo
 {
+    namespace
+    {
+        /// @brief predicate
+        /// @tparam DataType 
+        template <typename DataType>
+        using Predicate = std::function<void(DataType&)>;
+    }; /// anonymous namespace
+    
 /// @brief return summ of all elements of a container
 /// @tparam DataType 
 /// @param begin 
@@ -65,6 +73,32 @@ auto parallel_find(const typename Container<DataType>::iterator begin,
     auto fut = std::async(std::launch::deferred, parallel_find<Container, DataType>, mid_point, end, data);
     auto result = fut.get();
     return (result != end) ? result : parallel_find<Container, DataType>(begin, mid_point, data);
+}
+
+/// @brief parallel for_each algorithm
+/// @tparam DataType 
+/// @param container 
+/// @param pred 
+/// @return void
+template <template <typename> class Container, typename DataType>
+auto parallel_for_each(Container<DataType> &container, Predicate<DataType> pred) -> void
+{
+    static int num_hw_cores = std::thread::hardware_concurrency();
+    const int container_size = container.size();
+    if (container_size == 0) return;
+    int max_num_threads = (container_size % num_hw_cores == 0) ? container_size / num_hw_cores :
+        (container_size / num_hw_cores) + 1;
+    max_num_threads = std::min(max_num_threads, num_hw_cores);
+    int elements = container_size / max_num_threads;
+    for (unsigned int i(0); i < max_num_threads; ++i) {
+        std::thread([&]() {
+            int start = i * elements;
+            int end = start + elements;
+            if (end > container_size) end = container_size;
+            for (unsigned int j(start); j < end; ++j)
+                pred(container[j]);
+        }).join();
+    }
 }
 
 } /// namespace algo
