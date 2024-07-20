@@ -25,7 +25,7 @@ class ThreadPool final
     typedef std::function<void()> TASK;
     auto execute() -> void;
 public:
-    explicit ThreadPool(std::size_t numThreads);
+    ThreadPool();
     ~ThreadPool();
 
     ThreadPool(const ThreadPool&) = delete;
