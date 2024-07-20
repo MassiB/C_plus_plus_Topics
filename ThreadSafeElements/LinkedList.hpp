@@ -16,6 +16,7 @@
 #include <mutex>
 #include <optional>
 
+
 /// @brief Linked List class
 /// @tparam DataType 
 template <typename DataType>
@@ -42,8 +43,8 @@ public:
         InternalStructure *current {nullptr};
     };
 protected:
-    typedef InternalStructure Node;
-    typedef InternalIterator Iterator;
+    typedef InternalStructure node;
+    typedef InternalIterator iterator;
 public:
     LinkedList() = default;
     virtual ~LinkedList() = default;
@@ -54,12 +55,12 @@ public:
     auto empty() -> bool;
     auto front() -> std::optional<DataType>;
     auto back() -> std::optional<DataType>;
-    auto begin() -> Iterator&;
-    auto end() -> Iterator&;
+    auto begin() -> iterator&;
+    auto end() -> iterator&;
 private:
-    std::unique_ptr<Node> m_head {nullptr};
-    Node *m_tail {nullptr};
-    Iterator m_itr;
+    std::unique_ptr<node> m_head {nullptr};
+    node *m_tail {nullptr};
+    iterator m_itr;
     std::mutex m_mtx;
     std::condition_variable m_cv;
 };
@@ -72,7 +73,7 @@ template <typename DataType>
 auto LinkedList<DataType>::push_back(const DataType & element) -> void
 {
     std::lock_guard<std::mutex> lock(m_mtx);
-    auto newNode = std::make_unique<Node>(element);
+    auto newNode = std::make_unique<node>(element);
     newNode->prev = m_tail;
     if (nullptr == m_head) {
         m_head = std::move(newNode);
@@ -92,7 +93,7 @@ template <typename DataType>
 auto LinkedList<DataType>::push_front(const DataType & element) -> void
 {
     std::lock_guard<std::mutex> lock(m_mtx);
-    auto newNode = std::make_unique<Node>(element);
+    auto newNode = std::make_unique<node>(element);
     if (nullptr == m_head){
         m_head = std::move(newNode);
         m_tail = m_head.get();
@@ -175,7 +176,7 @@ auto LinkedList<DataType>::back() -> std::optional<DataType>
 /// @tparam DataType 
 /// @return Iterator&
 template <typename DataType>
-auto LinkedList<DataType>::begin() -> Iterator&
+auto LinkedList<DataType>::begin() -> iterator&
 {
     std::lock_guard<std::mutex> lock(m_mtx);
     m_itr.current = m_head.get();
@@ -186,10 +187,10 @@ auto LinkedList<DataType>::begin() -> Iterator&
 /// @tparam DataType 
 /// @return Iterator&
 template <typename DataType>
-auto LinkedList<DataType>::end() -> Iterator&
+auto LinkedList<DataType>::end() -> iterator&
 {
     std::lock_guard<std::mutex> lock(m_mtx);
-    Iterator itr;
+    iterator itr;
     itr.current = nullptr;  // End iterator points to nullptr
     return itr;
 }
@@ -198,7 +199,7 @@ auto LinkedList<DataType>::end() -> Iterator&
 /// @tparam DataType 
 /// @return Iterator&
 template <typename DataType>
-typename LinkedList<DataType>::Iterator& LinkedList<DataType>::Iterator::operator++()
+typename LinkedList<DataType>::iterator& LinkedList<DataType>::iterator::operator++()
 {
     if (nullptr != current)
         current = current->next.get();
@@ -209,7 +210,7 @@ typename LinkedList<DataType>::Iterator& LinkedList<DataType>::Iterator::operato
 /// @tparam DataType 
 /// @return DataType&
 template <typename DataType>
-DataType& LinkedList<DataType>::Iterator::operator*()
+DataType& LinkedList<DataType>::iterator::operator*()
 {
     return current->data;
 }
@@ -218,7 +219,7 @@ DataType& LinkedList<DataType>::Iterator::operator*()
 /// @tparam DataType 
 /// @return Node*
 template <typename DataType>
-typename LinkedList<DataType>::Node* LinkedList<DataType>::Iterator::operator->()
+typename LinkedList<DataType>::node* LinkedList<DataType>::iterator::operator->()
 {
     return current;
 }
@@ -228,7 +229,7 @@ typename LinkedList<DataType>::Node* LinkedList<DataType>::Iterator::operator->(
 /// @param itr 
 /// @return bool
 template <typename DataType>
-bool LinkedList<DataType>::Iterator::operator!=(const Iterator & itr)
+bool LinkedList<DataType>::iterator::operator!=(const iterator & itr)
 {
     return current != itr.current;
 }
@@ -238,7 +239,7 @@ bool LinkedList<DataType>::Iterator::operator!=(const Iterator & itr)
 /// @param itr 
 /// @return bool
 template <typename DataType>
-bool LinkedList<DataType>::Iterator::operator==(const Iterator & itr)
+bool LinkedList<DataType>::iterator::operator==(const iterator & itr)
 {
     return !operator!=(itr);
 }
