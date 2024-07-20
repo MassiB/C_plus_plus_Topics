@@ -12,6 +12,7 @@ set(SOURCES
     main.cpp
     ThreadPool/ThreadPool.cpp
     Scheduler/Scheduler.cpp
+    ThreadSafeElements/ThreadJoiner.cpp
     Logger/Logger.cpp
 )
 
