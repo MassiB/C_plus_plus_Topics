@@ -12,21 +12,30 @@
 #define UTILITIES_HPP_
 
 #include <iostream>
+#include <type_traits>
 
-/// @brief unused parameter function
-/// @tparam ...Args 
-/// @param ...arg 
-/// @return void
-template <typename... Args>
-auto unused(Args... arg) -> void { /*unused parameters*/ }
-
+namespace
+{
 /// @brief print_to_console recursive call
 /// @return void
-auto print_to_console() -> void
-{
-    std::cout << std::endl;
-}
+auto print_to_console() -> void { std::cout << std::endl; }
 
+/// @brief handle function with no ostream operator
+/// @tparam DataType 
+/// @tparam T 
+template <typename DataType, typename T = void>
+struct has_ostream_operator : std::false_type {};
+
+/// @brief Verify if DataType has ostream operator
+/// @tparam DataType 
+template <typename DataType>
+struct has_ostream_operator <DataType, std::void_t<decltype(std::declval<std::ostream&>() << std::declval<DataType>())>> : std::true_type {};
+
+} /// anonymous namespace
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
 /// @brief print element to console
 /// @tparam DataType 
 /// @tparam ...Args 
@@ -34,24 +43,32 @@ auto print_to_console() -> void
 /// @param ...args 
 /// @return void
 template <typename DataType, typename... Args>
-auto print_to_console(DataType && data, Args &&... args) -> void
+auto print_to_console(DataType && data, Args &&... args) -> typename
+    std::enable_if<has_ostream_operator<DataType>::value, void>::type
 {
-    std::cout << data << ',';
+    std::cout << data << ", ";
     print_to_console(std::forward<Args>(args)...);
 }
 
-/// @brief print elements of any container
-/// @tparam Container 
-/// @param begin 
-/// @param end 
+/// @brief print data of a container
+/// @tparam DataType 
+/// @param container 
 /// @return void
-template <class Container>
-auto print_to_console(typename Container::iterator begin, typename Container::iterator end) -> void
+template <template <typename DataType> class Container, typename DataType>
+auto print_to_console(const Container<DataType> &container) -> typename
+    std::enable_if<has_ostream_operator<DataType>::value, void>::type
 {
     std::cout << "[ ";
-    for (auto itr = begin; itr != end; ++itr)
-        std::cout << *itr << " ",
-    std::cout << "]\n"; 
+    for (auto &c : container)
+        std::cout << c << " ";
+    std::cout << "]\n";
 }
+
+/// @brief unused parameter function
+/// @tparam ...Args 
+/// @param ...arg 
+/// @return void
+template <typename... Args>
+auto unused(Args... arg) -> void { /*unused parameters*/ }
 
 #endif /*UTILITIES_HPP_*/

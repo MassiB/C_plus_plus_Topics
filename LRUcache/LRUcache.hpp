@@ -16,6 +16,9 @@
 #include <unordered_map>
 #include <utility>
 #include <stdexcept>
+#include <mutex>
+#include <condition_variable>
+#include <optional>
 
 namespace
 {
@@ -33,13 +36,15 @@ public:
     explicit LRUcache(std::size_t size);
     virtual ~LRUcache() = default;
 
-    auto get(const KEY & key) noexcept(false) -> VALUE&;
-    auto insert(KEY && key , VALUE && value) -> void;
+    auto get(const KEY & key) noexcept(false) -> std::optional<VALUE>;
+    auto insert(KEY & key , VALUE & value) -> void;
     auto print_to_console() const -> void;
 private:
     std::size_t m_size {EMPTY};
     std::list<PAIR> m_list;
     std::unordered_map<KEY, typename std::list<PAIR>::iterator> m_umap;
+    std::mutex m_mtx;
+    std::condition_variable m_cv;
 };
 
 /// @brief constructor
@@ -54,13 +59,14 @@ LRUcache<KEY,VALUE>::LRUcache(std::size_t size) : m_size(size)
 /// @tparam KEY 
 /// @tparam VALUE 
 /// @param key 
-/// @return VALUE&
+/// @return std::optional<VALUE>
 template <typename KEY, typename VALUE>
-auto LRUcache<KEY,VALUE>::get(const KEY &key) noexcept(false) -> VALUE&
+auto LRUcache<KEY,VALUE>::get(const KEY &key) noexcept(false) -> std::optional<VALUE>
 {
-    if (m_umap.find(key) == m_umap.end())
-        throw std::bad_alloc();
-    return m_umap[key]->second;
+    std::unique_lock<std::mutex> lock(m_mtx);
+    m_cv.wait(lock, [this]() -> bool { return !m_list.empty(); });
+    return (m_umap.find(key) != m_umap.end()) ? std::optional<VALUE> {m_umap[key]->second} :
+        std::nullopt;
 }
 
 /// @brief insert key/value into the cache 
@@ -69,8 +75,9 @@ auto LRUcache<KEY,VALUE>::get(const KEY &key) noexcept(false) -> VALUE&
 /// @param pair 
 /// @return void
 template <typename KEY, typename VALUE>
-auto LRUcache<KEY,VALUE>::insert(KEY && key , VALUE && value) -> void
+auto LRUcache<KEY,VALUE>::insert(KEY & key , VALUE & value) -> void
 {
+    std::lock_guard<std::mutex> lock(m_mtx);
     auto current_size = m_list.size();
     auto found = m_umap.find(key);
     if (found != m_umap.end()) {
@@ -85,6 +92,7 @@ auto LRUcache<KEY,VALUE>::insert(KEY && key , VALUE && value) -> void
         m_list.push_front(std::make_pair(key,value));
         m_umap.insert(std::make_pair(key,m_list.begin()));
     }
+    m_cv.notify_one();
 }
 
 /// @brief function to print in a console
@@ -94,6 +102,7 @@ auto LRUcache<KEY,VALUE>::insert(KEY && key , VALUE && value) -> void
 template <typename KEY, typename VALUE>
 auto LRUcache<KEY,VALUE>::print_to_console() const -> void
 {
+    std::lock_guard<std::mutex> lock(m_mtx);
     for (auto &l : m_list)
         std::cout << "key: " << l.first <<
                      " value: " << l.second << std::endl;
