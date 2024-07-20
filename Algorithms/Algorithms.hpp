@@ -19,6 +19,9 @@
 #include <condition_variable>
 #include <future>
 #include <functional>
+#include <type_traits>
+#include <utility>
+
 namespace algo
 {
     namespace
@@ -27,8 +30,40 @@ namespace algo
         /// @tparam DataType 
         template <typename DataType>
         using Predicate = std::function<void(DataType&)>;
+
+        /// @brief handle DataType with no + operator
+        /// @tparam DataType 
+        /// @tparam  
+        template <typename DataType, typename = void>
+        struct has_plus_operator : std::false_type {};
+        /// @brief Handle Datatype with + operator
+        /// @tparam DataType 
+        template <typename DataType>
+        struct has_plus_operator<DataType, std::void_t<decltype(std::declval<DataType&> + std::declval<DataType&>)>> : std::true_type {};
+
+        /// @brief recursive call
+        /// @tparam DataType 
+        /// @param data 
+        /// @return DataType
+        template <typename DataType>
+        auto sum(DataType && data) -> DataType
+        {
+            return std::forward<DataType>(data);
+        }
     }; /// anonymous namespace
     
+/// @brief sum all parameters
+/// @tparam DataType 
+/// @tparam ...Args 
+/// @param data 
+/// @param ...args 
+/// @return std::common_type_t<DataType, Args...>
+template<typename DataType, typename ...Args>
+auto sum(DataType && data, Args &&...args) -> std::common_type_t<DataType, Args...>
+{
+    return std::forward<DataType>(data) + sum(std::forward<Args>(args)...);
+}
+
 /// @brief return summ of all elements of a container
 /// @tparam DataType 
 /// @param begin 
@@ -100,6 +135,7 @@ auto parallel_for_each(Container<DataType> &container, Predicate<DataType> pred)
         }).join();
     }
 }
+
 
 } /// namespace algo
 
