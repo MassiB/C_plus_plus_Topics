@@ -11,10 +11,10 @@
 #include "ThreadPool.hpp"
 
 /// @brief Constructor
-/// @param numThreads 
-ThreadPool::ThreadPool(std::size_t numThreads) : m_running(true)
+ThreadPool::ThreadPool() : m_running(true)
 {
-    for (unsigned int i(0); i < numThreads; ++i)
+    static const int max_num_threads = std::thread::hardware_concurrency();
+    for (unsigned int i(0); i < max_num_threads; ++i)
         m_threads.emplace_back(
             std::thread(&ThreadPool::execute, this));
 }
