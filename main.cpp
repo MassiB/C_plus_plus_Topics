@@ -9,7 +9,6 @@
  * 
  */
 #include <iostream>
-
 /// @brief main thread
 /// @param argc 
 /// @param argv 
@@ -18,5 +17,5 @@ int main (int argc, char **argv)
 {
     std::cout << "-------- MAIN THREAD --------" << std::endl;
 
-    return (EXIT_SUCCESS);
+    return (0);
 } /*main thread*/

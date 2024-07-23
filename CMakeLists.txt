@@ -14,6 +14,10 @@ set(SOURCES
     Scheduler/Scheduler.cpp
     ThreadSafeElements/ThreadJoiner.cpp
     Logger/Logger.cpp
+    StateMachine/States/StartState.cpp
+    StateMachine/States/StopState.cpp
+    StateMachine/StateFactory.cpp
+    StateMachine/StateManagment.cpp
 )
 
 # Add the executable target
