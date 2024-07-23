@@ -17,5 +17,6 @@
 int main (int argc, char **argv)
 {
     std::cout << "-------- MAIN THREAD --------" << std::endl;
-    return (0);
+
+    return (EXIT_SUCCESS);
 } /*main thread*/
