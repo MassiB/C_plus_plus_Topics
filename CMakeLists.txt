@@ -18,6 +18,8 @@ set(SOURCES
     StateMachine/States/StopState.cpp
     StateMachine/StateFactory.cpp
     StateMachine/StateManagment.cpp
+    Matrix/Matrix.cpp
+    Matrix/MatrixOperation.cpp
 )
 
 # Add the executable target
