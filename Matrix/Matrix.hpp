@@ -31,8 +31,6 @@ public:
     auto setAll(int val) -> void;
     auto isSquared() const -> bool;
     auto getDimension() const -> DIMENSION;
-    /*properties*/
-    auto display() const -> void;
 private:
     int m_row {0}, m_col {0};
     std::unique_ptr<int[]> m_data {nullptr};

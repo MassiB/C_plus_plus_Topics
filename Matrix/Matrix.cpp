@@ -69,8 +69,8 @@ Matrix::~Matrix()
 /// @return void
 auto Matrix::setValue(int _row, int _col, int val) -> void
 {
-    if (_row > m_row || _row < 0 || _col > m_col || _col < 0) 
-        throw std::out_of_range ("Matrix position is out of range!");
+    if (_row > m_row || _row <= 0 || _col > m_col || _col <= 0) 
+        throw std::out_of_range (std::string(__FUNCTION__) + ": Matrix position is out of range!");
     int val_index = (_row - 1) * m_col + (_col - 1);
     m_data.get()[val_index] = val;
 }
@@ -81,9 +81,10 @@ auto Matrix::setValue(int _row, int _col, int val) -> void
 /// @return int
 auto Matrix::getValue(int _row, int _col) const -> int
 {
-    if (_row > m_row || _row < 0 || _col > m_col || _col < 0) 
-        throw std::out_of_range ("Matrix position is out of range!");
-    return m_data.get()[(_row - 1) * m_row + _col];
+    if (_row > m_row || _row <= 0 || _col > m_col || _col <= 0) 
+        throw std::out_of_range (std::string(__FUNCTION__) + ": Matrix position is out of range!");
+    int val_index = (_row - 1) * m_col + (_col - 1);
+    return m_data.get()[val_index];
 }
 
 /// @brief set all matrix value to val
@@ -108,16 +109,4 @@ auto Matrix::isSquared() const -> bool
 auto Matrix::getDimension() const -> DIMENSION
 {
     return std::make_pair(m_row, m_col);
-}
-
-/// @brief display the matrix to the console
-/// @return void
-auto Matrix::display() const -> void
-{
-    for (unsigned int row(0); row < m_row; ++row) {
-        for (unsigned int col(0); col < m_col; ++col) {
-            std::cout << m_data.get()[row * m_col + col] << " ";
-        }
-        std::cout << '\n';
-    }
 }

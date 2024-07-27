@@ -20,6 +20,7 @@ set(SOURCES
     StateMachine/StateManagment.cpp
     Matrix/Matrix.cpp
     Matrix/MatrixOperation.cpp
+    Matrix/MatrixView.cpp
 )
 
 # Add the executable target
