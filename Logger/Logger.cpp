@@ -11,13 +11,13 @@
 #include "Logger.hpp"
 
 #include <ctime>
-#include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
 
+
 /// @brief constructor
-Logger::Logger(const std::string & _filename) : m_filename(_filename), m_thread(&Logger::write, this)
+Logger::Logger() : m_thread(&Logger::write, this)
 {}
 
 /// @brief destructor
@@ -30,16 +30,23 @@ Logger::~Logger()
     }
     if (m_thread.joinable())
         m_thread.join();
+    if (m_outfile.is_open())
+        m_outfile.close();
 }
 
-/// @brief initialize logger class
+/// @brief Logger initialization
+/// @param log_level 
 /// @param filename 
 /// @return void
-auto Logger::initialize(const std::string & filename) -> void
+auto Logger::initialize(LEVEL log_level, const std::string & filename) -> void
 {
     std::lock_guard<std::mutex> lock(m_instance_mtx);
     if (nullptr == m_instance)
-        m_instance.reset(new Logger(filename));
+        m_instance.reset(new Logger());
+    if (m_outfile.is_open())
+        m_outfile.close();
+    m_outfile.open(filename);
+    m_level = log_level;
 }
 
 /// @brief get a single instance of Logger
@@ -56,7 +63,6 @@ auto Logger::getInstance() -> std::unique_ptr<Logger>&
 /// @return void
 auto Logger::write() -> void
 {
-    static std::ofstream m_outfile(m_filename);
     if (!m_outfile.is_open()) {
         return;
     }
@@ -71,22 +77,9 @@ auto Logger::write() -> void
             auto msg = std::move(m_message_queue.front());
             m_message_queue.pop();
             auto time = getCurrentTime();
-            m_outfile << time << ": " << msg << "\n"; 
+            m_outfile <<time << ": " << msg << "\n"; 
         }
     }
-    m_outfile.close();
-}
-
-/// @brief function interface to log messages
-/// @param message 
-/// @return void
-auto Logger::log(std::string && message) -> void
-{
-    {
-        std::unique_lock<std::mutex> lock(m_mtx);
-        m_message_queue.push(std::move(message));
-    }
-    m_cv.notify_one();
 }
 
 /// @brief current time in a string format
