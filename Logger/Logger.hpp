@@ -102,11 +102,4 @@ auto Logger::logMessage(const DataType & data) -> std::string
     return oss.str();
 }
 
-/// Defines logging verbosity
-#define LOG_DEBUG(...) Logger::getInstance()->log(LEVEL::LEVEL_DEBUG,  __VA_ARGS__)
-#define LOG_ERROR(...) Logger::getInstance()->log(LEVEL::LEVEL_ERROR, __VA_ARGS__)
-#define LOG_INFO(...) Logger::getInstance()->log(LEVEL::LEVEL_INFO, __VA_ARGS__)
-#define LOG_WARNING(...) Logger::getInstance()->log(LEVEL::LEVEL_WARNING, __VA_ARGS__)
-#define LOG_CRITICAL(...) Logger::getInstance()->log(LEVEL::LEVEL_CRITICAL, __VA_ARGS__)
-
 #endif /*LOGGER_HPP_*/
