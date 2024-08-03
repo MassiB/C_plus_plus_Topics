@@ -14,6 +14,7 @@ set(SOURCES
     Scheduler/Scheduler.cpp
     ThreadSafeElements/ThreadJoiner.cpp
     Logger/Logger.cpp
+    Logger/Level.cpp
     StateMachine/States/StartState.cpp
     StateMachine/States/StopState.cpp
     StateMachine/StateFactory.cpp
@@ -21,7 +22,7 @@ set(SOURCES
     Matrix/Matrix.cpp
     Matrix/MatrixOperation.cpp
     Matrix/MatrixView.cpp
-)
+    )
 
 # Add the executable target
 add_executable(C_PLUS_PLUS_TOPICS ${SOURCES})
